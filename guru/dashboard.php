@@ -22,24 +22,41 @@ $stmtG->execute([$user['id']]);
 $guru  = $stmtG->fetch();
 $today = date('Y-m-d');
 
-// Handle Self Check-in
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'self_checkin') {
+// Handle Self Check-in/out Guru
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     verifyCsrf();
     if ($guru) {
         try {
-            // Cek apakah sudah absen hari ini
-            $c = $db->prepare("SELECT id FROM absensi_guru WHERE guru_id = ? AND tanggal = ?");
-            $c->execute([$guru['id'], $today]);
-            if (!$c->fetch()) {
-                $db->prepare("INSERT INTO absensi_guru (guru_id, tanggal, waktu, status, dicatat_oleh) VALUES (?, ?, CURTIME(), 'Hadir', ?)")
-                   ->execute([$guru['id'], $today, $user['id']]);
-                redirectWith(APP_URL . '/guru/dashboard.php', 'success', 'Berhasil melakukan check-in mandiri hari ini.');
-            } else {
-                setFlash('warning', 'Kehadiran Anda sudah tercatat hari ini.');
+            $today = date('Y-m-d');
+            if ($_POST['action'] === 'self_checkin') {
+                $c = $db->prepare("SELECT id FROM absensi_guru WHERE guru_id = ? AND tanggal = ?");
+                $c->execute([$guru['id'], $today]);
+                if (!$c->fetch()) {
+                    $db->prepare("INSERT INTO absensi_guru (guru_id, tanggal, jam_masuk, status, dicatat_oleh) VALUES (?, ?, CURTIME(), 'Hadir', ?)")
+                       ->execute([$guru['id'], $today, $user['id']]);
+                    redirectWith(APP_URL . '/guru/dashboard.php', 'success', 'Berhasil melakukan check-in masuk.');
+                } else {
+                    setFlash('warning', 'Anda sudah melakukan check-in masuk hari ini.');
+                }
+            } elseif ($_POST['action'] === 'self_checkout') {
+                $c = $db->prepare("SELECT id, jam_pulang FROM absensi_guru WHERE guru_id = ? AND tanggal = ?");
+                $c->execute([$guru['id'], $today]);
+                $absen = $c->fetch();
+                if ($absen) {
+                    if (!$absen['jam_pulang']) {
+                        $db->prepare("UPDATE absensi_guru SET jam_pulang = CURTIME() WHERE id = ?")
+                           ->execute([$absen['id']]);
+                        redirectWith(APP_URL . '/guru/dashboard.php', 'success', 'Berhasil melakukan check-out pulang.');
+                    } else {
+                        setFlash('warning', 'Anda sudah melakukan check-out hari ini.');
+                    }
+                } else {
+                    setFlash('danger', 'Gagal: Anda belum melakukan check-in masuk.');
+                }
             }
         } catch (Exception $e) {
-            error_log("[Checkin Guru Error] " . $e->getMessage());
-            setFlash('danger', 'Gagal melakukan check-in: ' . $e->getMessage());
+            error_log("[Checkin/out Guru Error] " . $e->getMessage());
+            setFlash('danger', 'Kegagalan sistem: ' . $e->getMessage());
         }
     }
 }
@@ -273,7 +290,25 @@ if (!empty($belum)):
                 <div style="font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">
                     <?= e($absenGuru['status']) ?>
                 </div>
-                <div style="font-size:13px;color:var(--text-muted);">Tercatat: <?= formatTanggal($today) ?> (<?= substr($absenGuru['waktu'], 0, 5) ?> WIB)</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">
+                    <?= formatTanggal($today) ?><br>
+                    <?php if ($absenGuru['jam_masuk']): ?>
+                        <span class="badge bg-success" style="font-size:10px;">Masuk: <?= substr($absenGuru['jam_masuk'], 0, 5) ?></span>
+                    <?php endif; ?>
+                    <?php if ($absenGuru['jam_pulang']): ?>
+                        <span class="badge bg-info" style="font-size:10px;">Pulang: <?= substr($absenGuru['jam_pulang'], 0, 5) ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($absenGuru['status'] === 'Hadir' && !$absenGuru['jam_pulang']): ?>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= generateCsrf() ?>">
+                        <input type="hidden" name="action" value="self_checkout">
+                        <button type="submit" class="btn btn-warning w-100" style="background:#f59e0b; border-color:#f59e0b; color:#fff;">
+                            <i class="bi bi-box-arrow-right"></i> Check-out Pulang
+                        </button>
+                    </form>
+                <?php endif; ?>
                 <?php if ($absenGuru['keterangan']): ?>
                 <div style="margin-top:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;font-size:13px;color:var(--text-secondary);">
                     <?= e($absenGuru['keterangan']) ?>

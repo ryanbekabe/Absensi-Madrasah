@@ -31,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cek->execute([$guruId,$tgl]);
         $ex  = $cek->fetch();
         if ($ex) {
-            $db->prepare("UPDATE absensi_guru SET status=?,keterangan=?,dicatat_oleh=?,waktu=CURTIME() WHERE id=?")
+            $db->prepare("UPDATE absensi_guru SET status=?,keterangan=?,dicatat_oleh=?,jam_masuk=IFNULL(jam_masuk, CURTIME()) WHERE id=?")
                ->execute([$status,$ket?:null,$user['id'],$ex['id']]);
         } else {
-            $db->prepare("INSERT INTO absensi_guru (guru_id,tanggal,waktu,status,keterangan,dicatat_oleh) VALUES (?,?,CURTIME(),?,?,?)")
+            $db->prepare("INSERT INTO absensi_guru (guru_id,tanggal,jam_masuk,status,keterangan,dicatat_oleh) VALUES (?,?,CURTIME(),?,?,?)")
                ->execute([$guruId,$tgl,$status,$ket?:null,$user['id']]);
         }
     }
@@ -133,7 +133,14 @@ include __DIR__ . '/../includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </td>
-                        <td style="font-size:12px;"><?= $curStatus==='Hadir' && !empty($existingAbsensi[$g['id']]['waktu']) ? substr($existingAbsensi[$g['id']]['waktu'],0,5) : '-' ?></td>
+                        <td style="font-size:11px;">
+                            <?php if ($curStatus==='Hadir'): ?>
+                                <div class="text-success">In: <?= !empty($existingAbsensi[$g['id']]['jam_masuk']) ? substr($existingAbsensi[$g['id']]['jam_masuk'],0,5) : '-' ?></div>
+                                <div class="text-info">Out: <?= !empty($existingAbsensi[$g['id']]['jam_pulang']) ? substr($existingAbsensi[$g['id']]['jam_pulang'],0,5) : '-' ?></div>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <input type="text" class="form-control" name="keterangan[<?= $g['id'] ?>]"
                                    id="ket-<?= $g['id'] ?>"

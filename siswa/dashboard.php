@@ -27,23 +27,41 @@ $stmtS->execute([$user['id']]);
 $siswa = $stmtS->fetch();
 $today = date('Y-m-d');
 
-// Handle Self Check-in Siswa
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'student_checkin') {
+// Handle Self Check-in/out Siswa
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     verifyCsrf();
     if ($siswa) {
         try {
-            $c = $db->prepare("SELECT id FROM absensi_siswa WHERE siswa_id = ? AND tanggal = ?");
-            $c->execute([$siswa['id'], $today]);
-            if (!$c->fetch()) {
-                $db->prepare("INSERT INTO absensi_siswa (siswa_id, kelas_id, tanggal, waktu, status, dicatat_oleh) VALUES (?, ?, ?, CURTIME(), 'H', ?)")
-                   ->execute([$siswa['id'], $siswa['kelas_id'], $today, $user['id']]);
-                redirectWith(APP_URL . '/siswa/dashboard.php', 'success', 'Berhasil melakukan check-in mandiri.');
-            } else {
-                setFlash('warning', 'Anda sudah melakukan check-in hari ini.');
+            $today = date('Y-m-d');
+            if ($_POST['action'] === 'student_checkin') {
+                $c = $db->prepare("SELECT id FROM absensi_siswa WHERE siswa_id = ? AND tanggal = ?");
+                $c->execute([$siswa['id'], $today]);
+                if (!$c->fetch()) {
+                    $db->prepare("INSERT INTO absensi_siswa (siswa_id, kelas_id, tanggal, jam_masuk, status, dicatat_oleh) VALUES (?, ?, ?, CURTIME(), 'H', ?)")
+                       ->execute([$siswa['id'], $siswa['kelas_id'], $today, $user['id']]);
+                    redirectWith(APP_URL . '/siswa/dashboard.php', 'success', 'Berhasil melakukan check-in masuk.');
+                } else {
+                    setFlash('warning', 'Anda sudah melakukan check-in masuk hari ini.');
+                }
+            } elseif ($_POST['action'] === 'student_checkout') {
+                $c = $db->prepare("SELECT id, jam_pulang FROM absensi_siswa WHERE siswa_id = ? AND tanggal = ?");
+                $c->execute([$siswa['id'], $today]);
+                $absen = $c->fetch();
+                if ($absen) {
+                    if (!$absen['jam_pulang']) {
+                        $db->prepare("UPDATE absensi_siswa SET jam_pulang = CURTIME() WHERE id = ?")
+                           ->execute([$absen['id']]);
+                        redirectWith(APP_URL . '/siswa/dashboard.php', 'success', 'Berhasil melakukan check-out pulang.');
+                    } else {
+                        setFlash('warning', 'Anda sudah melakukan check-out hari ini.');
+                    }
+                } else {
+                    setFlash('danger', 'Gagal: Anda belum melakukan check-in masuk.');
+                }
             }
         } catch (Exception $e) {
-            error_log("[Checkin Siswa Error] " . $e->getMessage());
-            setFlash('danger', 'Gagal melakukan check-in: ' . $e->getMessage());
+            error_log("[Checkin/out Siswa Error] " . $e->getMessage());
+            setFlash('danger', 'Kegagalan sistem: ' . $e->getMessage());
         }
     }
 }
@@ -221,7 +239,25 @@ include __DIR__ . '/../includes/header.php';
             <div style="font-size:24px;font-weight:800;color:var(--<?= $stColors[$st] ?>);margin-bottom:6px;">
                 <?= $stTexts[$st] ?>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);"><?= formatTanggal($today) ?> <?= $statusHariIni['waktu'] ? ' pukul ' . substr($statusHariIni['waktu'], 0, 5) : '' ?></div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+                <?= formatTanggal($today) ?><br>
+                <?php if ($statusHariIni['jam_masuk']): ?>
+                    <span class="badge bg-success" style="font-size:10px;">Masuk: <?= substr($statusHariIni['jam_masuk'], 0, 5) ?></span>
+                <?php endif; ?>
+                <?php if ($statusHariIni['jam_pulang']): ?>
+                    <span class="badge bg-info" style="font-size:10px;">Pulang: <?= substr($statusHariIni['jam_pulang'], 0, 5) ?></span>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($st === 'H' && !$statusHariIni['jam_pulang']): ?>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= generateCsrf() ?>">
+                    <input type="hidden" name="action" value="student_checkout">
+                    <button type="submit" class="btn btn-warning w-100" style="background:#f59e0b; border-color:#f59e0b; color:#fff;">
+                        <i class="bi bi-box-arrow-right"></i> Check-out Pulang
+                    </button>
+                </form>
+            <?php endif; ?>
             <?php if ($statusHariIni['keterangan']): ?>
             <div style="margin-top:14px;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;font-size:13px;color:var(--text-secondary);">
                 <?= e($statusHariIni['keterangan']) ?>

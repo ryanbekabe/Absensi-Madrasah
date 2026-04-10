@@ -34,6 +34,20 @@
 - Implementasi sistem autentikasi & dashboard multi-role.
 - Implementasi CRUD Master Data & Sistem Absensi Inti.
 
+### [2026-04-10] v1.0.3 — Fitur Absen Keluar (Check-out)
+**Developer:** Antigravity AI
+**Status:** ✅ Done
+
+**Yang dikerjakan:**
+- Menambahkan kolom `jam_pulang` pada tabel `absensi_siswa` dan `absensi_guru`.
+- Memperbarui antarmuka Dashboard (Guru & Siswa) agar menampilkan tombol "Check-out Pulang" setelah pengguna melakukan check-in.
+- Memisahkan kolom waktu menjadi `Masuk` dan `Pulang` pada laporan Rekap Harian.
+- Memperbarui sistem agar otomatis mencatat `jam_masuk` saat check-in dan `jam_pulang` saat check-out.
+
+**Status Proyek:** Stable 1.0.3.
+
+---
+
 ### [2026-04-10] v1.0.2 — Pencatatan Waktu Rinci (Jam & Menit)
 **Developer:** Antigravity AI
 **Status:** ✅ Done
