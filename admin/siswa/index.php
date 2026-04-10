@@ -38,8 +38,10 @@ $total->execute($params);
 $pg    = paginate($total->fetchColumn(), $perPage, $page);
 
 $stmt = $db->prepare("
-    SELECT s.*, k.nama_kelas 
-    FROM siswa s LEFT JOIN kelas k ON s.kelas_id = k.id
+    SELECT s.*, k.nama_kelas, u.username
+    FROM siswa s 
+    LEFT JOIN kelas k ON s.kelas_id = k.id
+    LEFT JOIN users u ON s.user_id = u.id
     $where ORDER BY k.tingkat, k.nama_kelas, s.nama
     LIMIT ? OFFSET ?
 ");
@@ -55,9 +57,14 @@ include __DIR__ . '/../../includes/header.php';
         <h1 class="page-title">Data Siswa</h1>
         <p class="page-subtitle">Total: <?= number_format($pg['total']) ?> siswa</p>
     </div>
-    <a href="<?= APP_URL ?>/admin/siswa/tambah.php" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Tambah Siswa
-    </a>
+    <div style="display:flex;gap:8px;">
+        <a href="<?= APP_URL ?>/admin/siswa/buat_akun.php?action=sync_all" class="btn btn-secondary" data-confirm="Buat akun login otomatis untuk semua siswa yang belum memiliki akun?">
+            <i class="bi bi-arrow-repeat"></i> Sinkron Akun Login
+        </a>
+        <a href="<?= APP_URL ?>/admin/siswa/tambah.php" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Tambah Siswa
+        </a>
+    </div>
 </div>
 
 <!-- Filter -->
@@ -102,6 +109,7 @@ include __DIR__ . '/../../includes/header.php';
                     <th>Kelas</th>
                     <th>L/P</th>
                     <th>Wali Murid</th>
+                    <th class="text-center">Akun Login</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Aksi</th>
                 </tr>
@@ -135,6 +143,17 @@ include __DIR__ . '/../../includes/header.php';
                     <td>
                         <div style="font-size:12px;"><?= e($s['nama_wali'] ?? '-') ?></div>
                         <div style="font-size:11px;color:var(--text-muted);"><?= e($s['telepon_wali'] ?? '') ?></div>
+                    </td>
+                    <td class="text-center">
+                        <?php if ($s['username']): ?>
+                            <div style="font-size:11px;color:var(--success);font-weight:600;">
+                                <i class="bi bi-person-check-fill"></i> <?= e($s['username']) ?>
+                            </div>
+                        <?php else: ?>
+                            <a href="<?= APP_URL ?>/admin/siswa/buat_akun.php?id=<?= $s['id'] ?>" class="badge bg-danger text-decoration-none" data-tooltip="Klik untuk buat akun otomatis">
+                                <i class="bi bi-person-plus-fill"></i> Belum Ada
+                            </a>
+                        <?php endif; ?>
                     </td>
                     <td class="text-center">
                         <?= $s['aktif'] ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Non-aktif</span>' ?>

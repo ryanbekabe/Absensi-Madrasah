@@ -96,6 +96,8 @@ include __DIR__ . '/../../includes/header.php';
             <i class="bi bi-telephone"></i> <?= e($g['telepon'] ?? '-') ?>
             <?php if ($g['username']): ?>
             &nbsp;&nbsp;<i class="bi bi-person-circle"></i> <?= e($g['username']) ?>
+            <?php else: ?>
+            &nbsp;&nbsp;<a href="<?= APP_URL ?>/admin/guru/buat_akun.php?id=<?= $g['id'] ?>" class="text-danger" style="font-weight:700;"><i class="bi bi-person-plus"></i> Buat Akun</a>
             <?php endif; ?>
         </div>
         <div style="display:flex;gap:6px;margin-top:auto;">
