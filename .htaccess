@@ -1,0 +1,44 @@
+RewriteEngine On
+RewriteBase /web/absensi_sekolah/
+
+# Lindungi folder sensitif
+RewriteRule ^config/.*$  - [F,L]
+RewriteRule ^database/.*$ - [F,L]
+RewriteRule ^includes/.*$ - [F,L]
+
+# Paksa ekstensi .php (opsional)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Disable directory listing
+Options -Indexes
+
+# Disable server signature
+ServerSignature Off
+
+# Caching untuk assets statis
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|webp|svg|woff2?)$">
+    <IfModule mod_expires.c>
+        ExpiresActive On
+        ExpiresDefault "access plus 1 month"
+    </IfModule>
+    <IfModule mod_headers.c>
+        Header set Cache-Control "public, max-age=2592000"
+    </IfModule>
+</FilesMatch>
+
+# Blok akses langsung ke file PHP di folder terlarang
+<FilesMatch "\.php$">
+    <IfModule mod_authz_core.c>
+        # Apache 2.4+
+    </IfModule>
+</FilesMatch>
