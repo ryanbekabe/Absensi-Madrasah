@@ -13,7 +13,8 @@
 | Web Server | Apache2 |
 | PHP | 7.4+ |
 | Database | MySQL 5.7+ / MariaDB 10.3+ |
-| URL Akses | http://192.168.88.100/web/absensi_sekolah/ |
+| URL Akses | URL LOKAL: http://192.168.88.100/web/absensi_sekolah/
+URL PUBLIK: https://rsipalangkaraya.online/web/absensi_sekolah/ |
 | Path Dokumen | `/var/www/html/web/absensi_sekolah/` |
 
 ---

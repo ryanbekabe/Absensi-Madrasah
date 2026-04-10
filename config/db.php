@@ -19,7 +19,10 @@ define('DB_PORT',    '3306');
 // ============================================================
 define('APP_NAME',    'Absensi Sekolah');
 define('APP_VERSION', '1.0.0');
-define('APP_URL',     'http://192.168.88.100/web/absensi_sekolah');
+// Deteksi URL secara dinamis agar bisa diakses via IP Lokal maupun Domain Publik
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+$host     = $_SERVER['HTTP_HOST'] ?? '192.168.88.100';
+define('APP_URL', $protocol . $host . '/web/absensi_sekolah');
 define('APP_ROOT',    dirname(__DIR__));
 
 // Batas alpha sebelum peringatan dikirim
