@@ -251,23 +251,23 @@ CREATE TABLE audit_log (
 - [x] CRUD Siswa
 
 ### Sprint 2 (Absensi Siswa & Dashboard)
-- [ ] Form input absensi siswa per kelas
-- [ ] Tampilan rekap absensi harian
-- [ ] Dashboard guru (kelas yang perlu diisi)
-- [ ] Dashboard siswa (rekap pribadi)
-- [ ] CRUD Mata Pelajaran & Jadwal
+- [x] Form input absensi siswa per kelas
+- [x] Tampilan rekap absensi harian
+- [x] Dashboard guru (kelas yang perlu diisi)
+- [x] Dashboard siswa (rekap pribadi)
+- [x] CRUD Mata Pelajaran & Jadwal
 
 ### Sprint 3 (Absensi Guru & Laporan)
-- [ ] Form input absensi guru
-- [ ] Rekap absensi guru bulanan
-- [ ] Laporan rekap siswa (harian & bulanan)
-- [ ] Alert siswa melebihi batas alpha
+- [x] Form input absensi guru
+- [x] Rekap absensi guru bulanan
+- [x] Laporan rekap siswa (harian & bulanan)
+- [x] Alert siswa melebihi batas alpha
 
 ### Sprint 4 (Export & Polish)
-- [ ] Export PDF rekap absensi
-- [ ] Export Excel/CSV
-- [ ] UI polishing & responsivitas
-- [ ] Testing & bug fixing
+- [ ] Export PDF rekap absensi (Pending)
+- [x] Export CSV/Excel (UTF-8 BOM)
+- [x] UI polishing & responsivitas
+- [x] Testing & bug fixing
 
 ---
 

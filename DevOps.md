@@ -188,7 +188,18 @@ sudo systemctl reload apache2
 
 ---
 
-## 10. Troubleshooting Umum
+## 10. Otomatisasi Setup
+
+Tersedia script `setup.sh` untuk mempercepat konfigurasi awal (database, permission, dependensi).
+
+```bash
+chmod +x setup.sh
+sudo ./setup.sh
+```
+
+---
+
+## 11. Troubleshooting Umum
 
 | Masalah | Kemungkinan Penyebab | Solusi |
 |---|---|---|
@@ -201,7 +212,7 @@ sudo systemctl reload apache2
 
 ---
 
-## 11. Keamanan Produksi
+## 12. Keamanan Produksi
 
 - [ ] Ubah password default semua akun setelah instalasi.
 - [ ] Pastikan `display_errors = Off` di `php.ini`.
