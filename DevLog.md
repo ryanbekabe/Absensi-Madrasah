@@ -34,6 +34,32 @@
 - Implementasi sistem autentikasi & dashboard multi-role.
 - Implementasi CRUD Master Data & Sistem Absensi Inti.
 
+### [2026-04-10] v1.0.2 — Pencatatan Waktu Rinci (Jam & Menit)
+**Developer:** Antigravity AI
+**Status:** ✅ Done
+
+**Yang dikerjakan:**
+- Menambahkan kolom `waktu` (TIME) pada tabel `absensi_siswa` dan `absensi_guru`.
+- Memperbarui logika simpan absensi untuk mencatat waktu sekarang (`CURTIME()`).
+- Menampilkan waktu check-in pada Dashboard Guru, Dashboard Siswa, dan Laporan Rekap Harian.
+- Memberikan visibilitas kapan tepatnya seorang siswa atau guru melakukan absensi.
+
+**Status Proyek:** Stable 1.0.2.
+
+---
+
+### [2026-04-10] v1.0.1 — Fitur Check-in Mandiri
+**Developer:** Antigravity AI
+**Status:** ✅ Done
+
+**Yang dikerjakan:**
+- Menambahkan fitur **Check-in Mandiri** untuk Guru di Dashboard Guru.
+- Menambahkan fitur **Check-in Mandiri** untuk Siswa di Dashboard Siswa.
+- Memperbaiki alert informatif di dashboard jika kehadiran belum tercatat.
+- Memungkinkan user untuk mencatat kehadiran "Hadir" secara instan dengan satu klik.
+
+**Status Proyek:** Stable 1.0.1.
+
 ---
 
 ### [2026-04-10] v1.0.0 — Finalisasi & Fitur Jadwal

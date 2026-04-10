@@ -25,6 +25,28 @@ $stmtS = $db->prepare("
 ");
 $stmtS->execute([$user['id']]);
 $siswa = $stmtS->fetch();
+$today = date('Y-m-d');
+
+// Handle Self Check-in Siswa
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'student_checkin') {
+    verifyCsrf();
+    if ($siswa) {
+        try {
+            $c = $db->prepare("SELECT id FROM absensi_siswa WHERE siswa_id = ? AND tanggal = ?");
+            $c->execute([$siswa['id'], $today]);
+            if (!$c->fetch()) {
+                $db->prepare("INSERT INTO absensi_siswa (siswa_id, kelas_id, tanggal, waktu, status, dicatat_oleh) VALUES (?, ?, ?, CURTIME(), 'H', ?)")
+                   ->execute([$siswa['id'], $siswa['kelas_id'], $today, $user['id']]);
+                redirectWith(APP_URL . '/siswa/dashboard.php', 'success', 'Berhasil melakukan check-in mandiri.');
+            } else {
+                setFlash('warning', 'Anda sudah melakukan check-in hari ini.');
+            }
+        } catch (Exception $e) {
+            error_log("[Checkin Siswa Error] " . $e->getMessage());
+            setFlash('danger', 'Gagal melakukan check-in: ' . $e->getMessage());
+        }
+    }
+}
 
 // Rekap bulan ini
 $bulan = date('m');
@@ -190,16 +212,16 @@ include __DIR__ . '/../includes/header.php';
         <div class="card-body" style="text-align:center;padding:36px 20px;">
             <?php if ($statusHariIni): ?>
             <?php
-            $stIcon = ['H'=>'✅','I'=>'📋','S'=>'🤒','A'=>'❌'];
-            $stText = ['H'=>'Hadir','I'=>'Izin','S'=>'Sakit','A'=>'Alpha'];
-            $stColor = ['H'=>'success','I'=>'warning','S'=>'info','A'=>'danger'];
+            $stIcons = ['H'=>'✅','I'=>'📋','S'=>'🤒','A'=>'❌'];
+            $stTexts = ['H'=>'Hadir','I'=>'Izin','S'=>'Sakit','A'=>'Alpha'];
+            $stColors = ['H'=>'success','I'=>'warning','S'=>'info','A'=>'danger'];
             $st = $statusHariIni['status'];
             ?>
-            <div style="font-size:56px;margin-bottom:8px;"><?= $stIcon[$st] ?></div>
-            <div style="font-size:24px;font-weight:800;color:var(--<?= $stColor[$st] ?>);margin-bottom:6px;">
-                <?= $stText[$st] ?>
+            <div style="font-size:56px;margin-bottom:8px;"><?= $stIcons[$st] ?></div>
+            <div style="font-size:24px;font-weight:800;color:var(--<?= $stColors[$st] ?>);margin-bottom:6px;">
+                <?= $stTexts[$st] ?>
             </div>
-            <div style="font-size:13px;color:var(--text-muted);"><?= formatTanggal($today) ?></div>
+            <div style="font-size:13px;color:var(--text-muted);"><?= formatTanggal($today) ?> <?= $statusHariIni['waktu'] ? ' pukul ' . substr($statusHariIni['waktu'], 0, 5) : '' ?></div>
             <?php if ($statusHariIni['keterangan']): ?>
             <div style="margin-top:14px;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;font-size:13px;color:var(--text-secondary);">
                 <?= e($statusHariIni['keterangan']) ?>
@@ -208,7 +230,14 @@ include __DIR__ . '/../includes/header.php';
             <?php else: ?>
             <div style="font-size:48px;margin-bottom:12px;">📅</div>
             <div style="font-size:16px;font-weight:600;color:var(--text-secondary);">Belum Dicatat</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:6px;">Absensi hari ini belum diinput oleh guru.</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Silakan melakukan check-in mandiri atau hubungi guru.</div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= generateCsrf() ?>">
+                <input type="hidden" name="action" value="student_checkin">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-geo-alt-fill"></i> Check-in Hadir Sekarang
+                </button>
+            </form>
             <?php endif; ?>
         </div>
     </div>

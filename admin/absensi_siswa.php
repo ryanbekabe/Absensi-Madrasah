@@ -65,10 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $existing = $cek->fetch();
 
             if ($existing) {
-                $db->prepare("UPDATE absensi_siswa SET status=?,keterangan=?,kelas_id=?,dicatat_oleh=? WHERE id=?")
+                $db->prepare("UPDATE absensi_siswa SET status=?,keterangan=?,kelas_id=?,dicatat_oleh=?,waktu=CURTIME() WHERE id=?")
                    ->execute([$status, $ket?:null, $postKelasId, $user['id'], $existing['id']]);
             } else {
-                $db->prepare("INSERT INTO absensi_siswa (siswa_id,kelas_id,tanggal,status,keterangan,dicatat_oleh) VALUES (?,?,?,?,?,?)")
+                $db->prepare("INSERT INTO absensi_siswa (siswa_id,kelas_id,tanggal,waktu,status,keterangan,dicatat_oleh) VALUES (?,?,?,CURTIME(),?,?,?)")
                    ->execute([$siswaId, $postKelasId, $postTanggal, $status, $ket?:null, $user['id']]);
             }
             $saved++;

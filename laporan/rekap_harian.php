@@ -29,7 +29,7 @@ $params = [$tanggal];
 if ($kelasId) { $where .= " AND ab.kelas_id=?"; $params[] = $kelasId; }
 
 $stmt = $db->prepare("
-    SELECT s.nis, s.nama, k.nama_kelas, ab.status, ab.keterangan,
+    SELECT s.nis, s.nama, k.nama_kelas, ab.status, ab.keterangan, ab.waktu,
            CONCAT(u.nama) AS dicatat_oleh, ab.updated_at
     FROM absensi_siswa ab
     JOIN siswa s ON ab.siswa_id = s.id
@@ -112,7 +112,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="table-wrapper">
         <table class="table">
             <thead>
-                <tr><th>#</th><th>NIS</th><th>Nama Siswa</th><th>Kelas</th><th class="text-center">Status</th><th>Keterangan</th><th>Dicatat Oleh</th></tr>
+                <tr><th>#</th><th>NIS</th><th>Nama Siswa</th><th>Kelas</th><th class="text-center">Status</th><th>Waktu</th><th>Keterangan</th><th>Dicatat Oleh</th></tr>
             </thead>
             <tbody>
                 <?php foreach ($absensiList as $i => $a): ?>
@@ -122,6 +122,7 @@ include __DIR__ . '/../includes/header.php';
                     <td style="font-weight:500;color:var(--text-primary);"><?= e($a['nama']) ?></td>
                     <td><span class="badge bg-primary"><?= e($a['nama_kelas']) ?></span></td>
                     <td class="text-center"><?= statusLabel($a['status']) ?></td>
+                    <td style="font-size:12px;"><?= $a['waktu'] ? substr($a['waktu'],0,5) : '-' ?></td>
                     <td style="color:var(--text-muted);font-size:12px;"><?= e($a['keterangan']??'-') ?></td>
                     <td style="color:var(--text-muted);font-size:11px;"><?= e($a['dicatat_oleh']??'-') ?></td>
                 </tr>

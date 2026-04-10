@@ -20,6 +20,29 @@ $db    = getDB();
 $stmtG = $db->prepare("SELECT * FROM guru WHERE user_id = ? LIMIT 1");
 $stmtG->execute([$user['id']]);
 $guru  = $stmtG->fetch();
+$today = date('Y-m-d');
+
+// Handle Self Check-in
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'self_checkin') {
+    verifyCsrf();
+    if ($guru) {
+        try {
+            // Cek apakah sudah absen hari ini
+            $c = $db->prepare("SELECT id FROM absensi_guru WHERE guru_id = ? AND tanggal = ?");
+            $c->execute([$guru['id'], $today]);
+            if (!$c->fetch()) {
+                $db->prepare("INSERT INTO absensi_guru (guru_id, tanggal, waktu, status, dicatat_oleh) VALUES (?, ?, CURTIME(), 'Hadir', ?)")
+                   ->execute([$guru['id'], $today, $user['id']]);
+                redirectWith(APP_URL . '/guru/dashboard.php', 'success', 'Berhasil melakukan check-in mandiri hari ini.');
+            } else {
+                setFlash('warning', 'Kehadiran Anda sudah tercatat hari ini.');
+            }
+        } catch (Exception $e) {
+            error_log("[Checkin Guru Error] " . $e->getMessage());
+            setFlash('danger', 'Gagal melakukan check-in: ' . $e->getMessage());
+        }
+    }
+}
 
 // Kelas yang diajar / wali kelas
 $kelasList = [];
@@ -115,9 +138,18 @@ if (!empty($belum)):
 
 <!-- Absensi guru hari ini -->
 <?php if ($guru && !$absenGuru): ?>
-<div class="alert alert-info mb-16">
-    <i class="bi bi-info-circle-fill"></i>
-    <span>Kehadiran Anda hari ini belum dicatat. Hubungi admin untuk mencatat kehadiran.</span>
+<div class="alert alert-info mb-16" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <i class="bi bi-info-circle-fill" style="font-size:20px;"></i>
+        <span>Kehadiran Anda hari ini belum dicatat.</span>
+    </div>
+    <form method="POST" style="margin:0;">
+        <input type="hidden" name="csrf_token" value="<?= generateCsrf() ?>">
+        <input type="hidden" name="action" value="self_checkin">
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-check2-square"></i> Check-in Sekarang (Hadir)
+        </button>
+    </form>
 </div>
 <?php endif; ?>
 
@@ -241,7 +273,7 @@ if (!empty($belum)):
                 <div style="font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">
                     <?= e($absenGuru['status']) ?>
                 </div>
-                <div style="font-size:13px;color:var(--text-muted);">Tercatat: <?= formatTanggal($today) ?></div>
+                <div style="font-size:13px;color:var(--text-muted);">Tercatat: <?= formatTanggal($today) ?> (<?= substr($absenGuru['waktu'], 0, 5) ?> WIB)</div>
                 <?php if ($absenGuru['keterangan']): ?>
                 <div style="margin-top:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:10px;font-size:13px;color:var(--text-secondary);">
                     <?= e($absenGuru['keterangan']) ?>

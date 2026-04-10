@@ -31,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cek->execute([$guruId,$tgl]);
         $ex  = $cek->fetch();
         if ($ex) {
-            $db->prepare("UPDATE absensi_guru SET status=?,keterangan=?,dicatat_oleh=? WHERE id=?")
+            $db->prepare("UPDATE absensi_guru SET status=?,keterangan=?,dicatat_oleh=?,waktu=CURTIME() WHERE id=?")
                ->execute([$status,$ket?:null,$user['id'],$ex['id']]);
         } else {
-            $db->prepare("INSERT INTO absensi_guru (guru_id,tanggal,status,keterangan,dicatat_oleh) VALUES (?,?,?,?,?)")
+            $db->prepare("INSERT INTO absensi_guru (guru_id,tanggal,waktu,status,keterangan,dicatat_oleh) VALUES (?,?,CURTIME(),?,?,?)")
                ->execute([$guruId,$tgl,$status,$ket?:null,$user['id']]);
         }
     }
@@ -104,6 +104,7 @@ include __DIR__ . '/../includes/header.php';
                         <th>Nama Guru</th>
                         <th>NIP</th>
                         <th>Status</th>
+                        <th>Waktu</th>
                         <th>Keterangan</th>
                     </tr>
                 </thead>
@@ -132,6 +133,7 @@ include __DIR__ . '/../includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </td>
+                        <td style="font-size:12px;"><?= $curStatus==='Hadir' && !empty($existingAbsensi[$g['id']]['waktu']) ? substr($existingAbsensi[$g['id']]['waktu'],0,5) : '-' ?></td>
                         <td>
                             <input type="text" class="form-control" name="keterangan[<?= $g['id'] ?>]"
                                    id="ket-<?= $g['id'] ?>"
